@@ -10,8 +10,7 @@ This repository contains the backend API for the recommendation system, which wi
 
 The following notebook contains EDA and Recommendation System Analysis: https://github.com/varunjoshua/Movie-Recommender-System/blob/main/rec_system_models.ipynb 
 
-
-
+-----------------------------------------------------
 
 ## Features 
 
@@ -38,7 +37,7 @@ The following notebook contains EDA and Recommendation System Analysis: https://
 
 
 
-
+-----------------------------------------------------
 
 ## Prerequisites
 
