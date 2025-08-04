@@ -18,9 +18,9 @@ def load_and_preprocess_data():
 
         # Create a pivot table for the user-movie ratings
         user_movie_ratings = ratings_df.pivot_table(
-            index='userId',
-            columns='movieId',
-            values='rating'
+            index='UserID',
+            columns='MovieID',
+            values='Rating'
         ).fillna(0)
 
         # Get the item-item cosine similarity matrix
