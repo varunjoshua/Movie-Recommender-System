@@ -92,6 +92,10 @@ def recommend():
             "status": "error",
             "message": str(e)
         }), 400
+    
+@app.route('/credits')
+def credits():
+    return render_template('credits.html')
 
 # To run the application, use `flask run` in your terminal
 # if __name__ == '__main__':

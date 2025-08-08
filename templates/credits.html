@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommender Credits</title>
+    <!-- Use Tailwind CSS for basic styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .credits-container {
+            width: 100%;
+            height: 100vh; /* Full viewport height */
+            overflow: hidden; /* Hide anything outside this box */
+            position: relative;
+            background-color: #000;
+        }
+
+        .credits-roll {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            top: 100%; /* Start the text from below the screen */
+            animation: roll-up 20s linear infinite; /* Animate the roll */
+        }
+
+        /* The keyframes animation that moves the text */
+        @keyframes roll-up {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-100%); /* Move the text completely out of the container at the top */
+            }
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+
+    <div class="credits-container">
+        <div class="credits-roll">
+            <!-- Credits List -->
+            <div class="space-y-6 text-sm">
+                <div class="my-8">
+                    <p class="font-bold text-lg">Conceived & Compiled by</p>
+                    <p class="text-indigo-200 mt-2">Varun Joshua</p>
+                </div>
+                
+                <div class="my-8">
+                    <p class="font-bold text-lg">Machine Learning Recommendation Model</p>
+                    <p class="text-indigo-200 mt-2">Varun Joshua</p>
+                </div>
+
+                <div class="my-8">
+                    <p class="font-bold text-lg">Application & Interface</p>
+                    <p class="text-indigo-200 mt-2">Google Gemini Flash 2.5</p>
+                </div>
+
+                <div class="my-8">
+                    <p class="font-bold text-lg">Styling & Visual Design</p>
+                    <p class="text-indigo-200 mt-2">Google Gemini Flash</p>
+                </div>
+
+                <div class="my-8">
+                    <p class="font-bold text-lg">Code & Script Optimization</p>
+                    <p class="text-indigo-200 mt-2">GitHub Copilot</p>
+                </div>
+
+                <div class="my-8">
+                    <p class="font-bold text-lg">Background Image Provided by</p>
+                    <p class="text-indigo-200 mt-2">wallpaperbat.com</p>
+                </div>
+                
+                <!-- This extra empty space is to ensure the credits can fully roll off the screen before restarting -->
+                <div class="h-screen"></div> 
+
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

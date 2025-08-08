@@ -6,11 +6,29 @@
     <title>Movie Recommender</title>
     <!-- Use Tailwind CSS for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body::before {
+          content: "";
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          background: url('/static/images/bg.jpg') center center / cover no-repeat;
+          opacity: 0.50;
+          pointer-events: none;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center">
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center">
 
-<h1 class="text-3xl font-bold mb-6 text-center text-indigo-400">The Limited but Proper Movie Recommender</h1>
+<h1 class="text-3xl font-bold text-center text-indigo-400 mt-[10vh] bg-black/60 px-6 py-3 rounded-lg shadow-lg">
+    The Limited but Proper Movie Recommender
+</h1>
+<p class="text-sm text-gray-400 text-center max-w-xl">ver1.0</p>
 
+<p class="mt-3 text-sm text-white-400 text-center max-w-xl bg-black/60 px-6 py-3 rounded-lg shadow-lg">
+    Search our tiny but satisfying collection of 3,883 films from 1921 to 2000, and get personalized recommendations based on your selection. It's quite charming. Give it a try.
+</p>
+<br> *****
     <div class="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-xl border border-gray-700">
         
 
@@ -18,6 +36,8 @@
         <div class="mb-6 relative">
             <label for="movie-search" class="block text-gray-300 font-medium mb-2">Find a Movie:</label>
             <input type="text" id="movie-search" placeholder="Start typing a movie title..." class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            
+
             <!-- This is where the autocomplete suggestions will appear -->
             <ul id="autocomplete-list" class="absolute z-10 w-full bg-gray-700 mt-1 rounded-md shadow-lg border border-gray-600 max-h-48 overflow-y-auto hidden"></ul>
         </div>
@@ -159,5 +179,50 @@
         });
 
     </script>
+
+<!-- Credits Link (bottom right) -->
+<a id="open-credits-link" href="#" class="fixed bottom-4 right-6 z-50 text-indigo-300 hover:text-indigo-400 text-sm font-semibold bg-black/60 px-4 py-2 rounded shadow-lg transition">
+    Credits
+</a>
+
+<!-- Credits Modal Frame -->
+<div id="credits-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden">
+    <div class="relative bg-gray-900 rounded-xl shadow-2xl overflow-hidden" style="width:33vw; min-width:320px; max-width:500px; height:50vh;">
+        <button id="close-credits-btn" class="absolute top-2 right-2 text-gray-400 hover:text-white text-xl font-bold z-10">&times;</button>
+        <iframe src="/credits" class="w-full h-full border-0" title="Credits"></iframe>
+    </div>
+</div>
+
+<script>
+    // Show credits modal
+    document.getElementById('open-credits-link').onclick = function(e) {
+        e.preventDefault();
+        document.getElementById('credits-modal').classList.remove('hidden');
+    };
+    // Hide credits modal
+    document.getElementById('close-credits-btn').onclick = function() {
+        document.getElementById('credits-modal').classList.add('hidden');
+    };
+    // Optional: Hide modal when clicking outside the frame
+    document.getElementById('credits-modal').onclick = function(e) {
+        if (e.target === this) this.classList.add('hidden');
+    };
+</script>
+
 </body>
 </html>
+
+<!-- Credits -->
+<!-- Concept & Product: Varun Joshua -->
+<!-- ML Recommendation Model : Varun Joshua -->
+<!-- Flask App Code: Google Gemini Flash 2.5 -->
+<!-- Tailwind CSS Styling: Google Gemini Flash -->
+<!-- HTML : Google Gemini Flash 2.5 -->
+<!-- Background Image: wallpaperbat.com -->
+<!-- Code Edits, Bug Fixes : GitHub Copilot-->
+
+
+<!--
+    This project is a simplified movie recommender system built with Flask and Tailwind CSS and a recommendation system built using item-item similarity.
+    It uses a small dataset of movies and provides basic search and recommendation functionality.
+    Feel free to explore and enhance it further!>
