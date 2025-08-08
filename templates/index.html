@@ -33,13 +33,22 @@
         
 
         <!-- Search with Autocomplete Section -->
-        <div class="mb-6 relative">
+        <div class="mb-6">
             <label for="movie-search" class="block text-gray-300 font-medium mb-2">Find a Movie:</label>
-            <input type="text" id="movie-search" placeholder="Start typing a movie title..." class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            
-
-            <!-- This is where the autocomplete suggestions will appear -->
-            <ul id="autocomplete-list" class="absolute z-10 w-full bg-gray-700 mt-1 rounded-md shadow-lg border border-gray-600 max-h-48 overflow-y-auto hidden"></ul>
+            <div class="relative w-full">
+                <input type="text" id="movie-search" placeholder="Start typing a movie title..." class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10">
+                <button id="refresh-search-btn" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-400 focus:outline-none" title="Clear search">
+                    <!-- Refresh/Clear SVG icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10"/>
+                        <path d="M20.49 15a9 9 0 0 1-14.13 3.36L1 14"/>
+                    </svg>
+                </button>
+                <!-- This is where the autocomplete suggestions will appear -->
+                <ul id="autocomplete-list" class="absolute z-10 w-full bg-gray-700 mt-1 rounded-md shadow-lg border border-gray-600 max-h-48 overflow-y-auto hidden"></ul>
+            </div>
         </div>
         
         <!-- The user will select a movie, and the ID will be stored here -->
@@ -59,10 +68,10 @@
     </div>
     
     <!-- Note about movie dataset -->
-    <p class="mt-4 text-sm text-gray-400 text-center max-w-xl">
+    <p class="mt-4 text-sm text-white-400 font-semibold text-center max-w-xl">
         <b>"Frankly, my dear, we don't have more than 3,883 movies."</b>
         <br>
-        This recommender is limited to our database of 3,883 movies from 1970-2000...
+        This recommender is limited to our database of 3,883 movies from 1921-2000 and more than 1 million ratings from over 6000 users...
     </p>
 
     <!-- JavaScript for dynamic functionality -->
@@ -177,6 +186,17 @@
                 autocompleteList.classList.add('hidden');
             }
         });
+
+        // Refresh/Clear search button functionality
+        document.getElementById('refresh-search-btn').onclick = function() {
+            movieSearchInput.value = '';
+            selectedMovieIdInput.value = '';
+            selectedMovieTitleInput.value = '';
+            autocompleteList.innerHTML = '';
+            autocompleteList.classList.add('hidden');
+            recommendationsList.innerHTML = '';
+            resultsHeading.classList.add('hidden');
+        };
 
     </script>
 
