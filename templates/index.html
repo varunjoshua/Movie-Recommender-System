@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommender</title>
+    <!-- Use Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center">
+
+<h1 class="text-3xl font-bold mb-6 text-center text-indigo-400">The Limited but Proper Movie Recommender</h1>
+
+    <div class="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-xl border border-gray-700">
+        
+
+        <!-- Search with Autocomplete Section -->
+        <div class="mb-6 relative">
+            <label for="movie-search" class="block text-gray-300 font-medium mb-2">Find a Movie:</label>
+            <input type="text" id="movie-search" placeholder="Start typing a movie title..." class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <!-- This is where the autocomplete suggestions will appear -->
+            <ul id="autocomplete-list" class="absolute z-10 w-full bg-gray-700 mt-1 rounded-md shadow-lg border border-gray-600 max-h-48 overflow-y-auto hidden"></ul>
+        </div>
+        
+        <!-- The user will select a movie, and the ID will be stored here -->
+        <input type="hidden" id="selected-movie-id" value="">
+        <input type="hidden" id="selected-movie-title" value="">
+
+        <button id="get-recommendations-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            Get Recommendations
+        </button>
+
+        <!-- Loading Indicator and Results Section -->
+        <div id="results-container" class="mt-8">
+            <h2 id="results-heading" class="text-xl font-semibold mb-4 text-center hidden">Recommendations for <span class="text-indigo-400"></span>:</h2>
+            <div id="loading-indicator" class="hidden text-center text-gray-400">Loading recommendations...</div>
+            <ul id="recommendations-list" class="space-y-2"></ul>
+        </div>
+    </div>
+    
+    <!-- Note about movie dataset -->
+    <p class="mt-4 text-sm text-gray-400 text-center max-w-xl">
+        <b>"Frankly, my dear, we don't have more than 3,883 movies."</b>
+        <br>
+        This recommender is limited to our database of 3,883 movies from 1970-2000...
+    </p>
+
+    <!-- JavaScript for dynamic functionality -->
+    <script>
+        const movieSearchInput = document.getElementById('movie-search');
+        const autocompleteList = document.getElementById('autocomplete-list');
+        const getRecommendationsBtn = document.getElementById('get-recommendations-btn');
+        const recommendationsList = document.getElementById('recommendations-list');
+        const resultsHeading = document.getElementById('results-heading');
+        const selectedMovieIdInput = document.getElementById('selected-movie-id');
+        const selectedMovieTitleInput = document.getElementById('selected-movie-title');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        // ====================================================================
+        // Core Function: Handle Autocomplete Search
+        // ====================================================================
+        let timeout = null;
+
+        movieSearchInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            const query = movieSearchInput.value;
+
+            // Only make an API call if the query is not empty
+            if (query.length > 2) {
+                timeout = setTimeout(async () => {
+                    const response = await fetch(`/search_movies?query=${query}`);
+                    const data = await response.json();
+                    displayAutocompleteResults(data.movies);
+                }, 300); // 300ms debounce to avoid spamming the API
+            } else {
+                // Clear the list if the search query is too short
+                autocompleteList.innerHTML = '';
+                autocompleteList.classList.add('hidden');
+            }
+        });
+
+        function displayAutocompleteResults(movies) {
+            autocompleteList.innerHTML = ''; // Clear previous results
+            if (movies.length > 0) {
+                movies.forEach(movie => {
+                    const li = document.createElement('li');
+                    li.textContent = movie.Title;
+                    li.setAttribute('data-movie-id', movie.MovieID);
+                    li.setAttribute('data-movie-title', movie.Title);
+                    li.className = 'p-2 cursor-pointer hover:bg-gray-600 transition duration-150';
+                    autocompleteList.appendChild(li);
+
+                    // Add a click event listener to select a movie
+                    li.addEventListener('click', () => {
+                        // Set the input field, hide the list, and save the movie ID/title
+                        movieSearchInput.value = movie.Title;
+                        selectedMovieIdInput.value = movie.MovieID;
+                        selectedMovieTitleInput.value = movie.Title;
+                        autocompleteList.classList.add('hidden');
+                    });
+                });
+                autocompleteList.classList.remove('hidden');
+            } else {
+                autocompleteList.classList.add('hidden');
+            }
+        }
+
+        // ====================================================================
+        // Core Function: Handle Getting Recommendations
+        // ====================================================================
+        getRecommendationsBtn.addEventListener('click', async () => {
+            const selectedMovieId = selectedMovieIdInput.value;
+            const selectedMovieTitle = selectedMovieTitleInput.value;
+            
+            if (!selectedMovieId) {
+                // Use a simple alert for now, we can replace this with a better UI later
+                alert('Please select a movie from the search suggestions.');
+                return;
+            }
+
+            // Show loading indicator and clear previous results
+            loadingIndicator.classList.remove('hidden');
+            recommendationsList.innerHTML = '';
+            resultsHeading.classList.add('hidden');
+
+            try {
+                // Call the recommendations API endpoint
+                const response = await fetch(`/recommendations?movie_id=${selectedMovieId}&n_recs=10`);
+                const data = await response.json();
+
+                if (data.status === 'success' && data.recommended_movies.length > 0) {
+                    // Update the heading to show which movie the recommendations are for
+                    resultsHeading.querySelector('span').textContent = selectedMovieTitle;
+                    resultsHeading.classList.remove('hidden');
+
+                    // Populate the recommendations list
+                    data.recommended_movies.forEach(movie => {
+                        const li = document.createElement('li');
+                        li.textContent = movie.Title;
+                        li.className = 'bg-gray-700 p-2 rounded-md shadow-inner text-gray-200';
+                        recommendationsList.appendChild(li);
+                    });
+                } else {
+                    recommendationsList.innerHTML = `<li class="text-gray-400 text-center">No recommendations found.</li>`;
+                }
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+                recommendationsList.innerHTML = `<li class="text-red-400 text-center">An error occurred. Please try again.</li>`;
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        });
+        
+        // Hide autocomplete list when clicking outside the input
+        document.addEventListener('click', (event) => {
+            if (!autocompleteList.contains(event.target) && event.target !== movieSearchInput) {
+                autocompleteList.classList.add('hidden');
+            }
+        });
+
+    </script>
+</body>
+</html>
