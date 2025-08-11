@@ -97,6 +97,71 @@ def recommend():
 def credits():
     return render_template('credits.html')
 
+
+# ------------ TMDb API Integration ------------
+
+# Import necessary libraries for TMDb API
+
+def search_movies(query):
+    """
+    Searches for movies on TMDb by title.
+
+    Args:
+        query (str): The movie title to search for.
+
+    Returns:
+        list: A list of movie dictionaries matching the query,
+              or an empty list if the request fails.
+    """
+    # Replace 'YOUR_API_KEY' with your actual TMDb API key
+    api_key = '619800e856d7bff5b95923808928a998'
+    base_url = 'https://api.themoviedb.org/3/search/movie'
+
+    # Set up the parameters for the GET request
+    params = {
+        'api_key': api_key,
+        'query': query
+    }
+
+    try:
+        # Make the API call
+        response = requests.get(base_url, params=params)
+        
+        # Raise an exception for bad status codes (4xx or 5xx)
+        response.raise_for_status()
+        
+        # Parse the JSON response
+        data = response.json()
+        
+        # The API returns a 'results' key which is a list of movies
+        return data.get('results', [])
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error during API request: {e}")
+        return []
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return []
+
+#--- Search API Test - delete after---
+
+search_term = "The Matrix"
+search_results = search_movies(search_term)
+
+if search_results:
+     print(f"Found {len(search_results)} results for '{search_term}':")
+     for movie in search_results:
+         # The 'id' and 'title' are the most important fields here
+         movie_id = movie.get('id')
+         title = movie.get('title')
+         release_date = movie.get('release_date', 'N/A')
+         print(f"  ID: {movie_id}, Title: '{title}', Release Date: {release_date}")
+else:
+     print(f"No results found for '{search_term}'.")
+
+
+
+
 # To run the application, use `flask run` in your terminal
 # if __name__ == '__main__':
     app.run(debug=True)
