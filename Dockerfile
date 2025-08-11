@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 # Use a lightweight Python base image with a newer version
 FROM python:3.10-slim
-=======
-# Use a lightweight Python base image
-FROM python:3.9-slim
->>>>>>> huggingface/main
 
 # Set the working directory
 WORKDIR /app
@@ -20,8 +15,4 @@ COPY . .
 EXPOSE 7860
 
 # Command to run the application
-<<<<<<< HEAD
 CMD gunicorn --bind 0.0.0.0:7860 app:app
-=======
-CMD gunicorn --bind 0.0.0.0:7860 app:app
->>>>>>> huggingface/main
