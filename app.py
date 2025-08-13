@@ -6,6 +6,8 @@ from flask import Flask, request, jsonify, render_template
 # Import data and functions from the recommender module
 from recommender_models import get_recommendations_from_id, movies_df
 
+# For making external API calls
+import requests
 
 # ----- * Flask Application Setup * -----
 
@@ -24,34 +26,42 @@ def home():
     return render_template('index.html')
 
 
-# --- API Endpoint for Search and Autocomplete ---
+# --- Revised API Endpoint for Search and Autocomplete ---
 
 @app.route('/search_movies', methods=['GET'])
-def search_movies():
+def search_movies_endpoint():
     """
-    This is the new API for our autocomplete feature.
-    It takes a 'query' parameter and returns a list of matching movies from our dataset.
+    This is the API for our autocomplete feature.
+    It first searches our local database and then fetches
+    poster images from the TMDb API for the matching movies.
     """
     # Get the search query from the URL parameters
-    query = request.args.get('query', '').lower()
+    query = request.args.get('query', '')
     
     # If there's no query, return an empty list
     if not query:
         return jsonify({"status": "success", "movies": []})
 
-    # Search for movies where the title contains the query string
-    # We'll use a case-insensitive search for a better user experience
-    matching_movies = movies_df[movies_df['Title'].str.lower().str.contains(query)]
-
-    # We only want to return a maximum of 10 suggestions to keep the list clean
-    matching_movies = matching_movies.head(10)
+    # 1. Search our local DataFrame for movies with matching titles
+    matching_movies = movies_df[movies_df['Title'].str.lower().str.contains(query.lower())]
+    matching_movies = matching_movies.head(10) # Limit to 10 results
     
-    # Convert the matching movies DataFrame to a list of dictionaries
-    movies_list = matching_movies[['MovieID', 'Title']].to_dict('records')
+    movies_with_details = []
     
-    # Return the results as JSON
-    return jsonify({"status": "success", "movies": movies_list})
-
+    # 2. For each matching movie, fetch the poster from TMDb
+    for index, movie in matching_movies.iterrows():
+        tmdb_movie = search_tmdb_for_poster(movie['Title'])
+        
+        # Construct the response object
+        movie_details = {
+            'MovieID': movie['MovieID'],
+            'Title': movie['Title'],
+            # If a TMDb match is found, include the poster path
+            'PosterPath': tmdb_movie['poster_path'] if tmdb_movie else None
+        }
+        movies_with_details.append(movie_details)
+        
+    return jsonify({"status": "success", "movies": movies_with_details})
 
 
 # --- Recommendation Endpoint ---
@@ -100,68 +110,77 @@ def credits():
 
 # ------------ TMDb API Integration ------------
 
-# Import necessary libraries for TMDb API
-
-def search_movies(query):
+def search_tmdb_for_poster(query):
     """
-    Searches for movies on TMDb by title.
+    Searches for a movie on TMDb and returns the first result.
+    This is used to get the poster path for a movie from our local database.
 
     Args:
         query (str): The movie title to search for.
 
     Returns:
-        list: A list of movie dictionaries matching the query,
-              or an empty list if the request fails.
+        dict: The first movie dictionary matching the query, or None.
     """
-    # Replace 'YOUR_API_KEY' with your actual TMDb API key
     api_key = '619800e856d7bff5b95923808928a998'
     base_url = 'https://api.themoviedb.org/3/search/movie'
 
-    # Set up the parameters for the GET request
     params = {
         'api_key': api_key,
         'query': query
     }
 
     try:
-        # Make the API call
         response = requests.get(base_url, params=params)
-        
-        # Raise an exception for bad status codes (4xx or 5xx)
         response.raise_for_status()
-        
-        # Parse the JSON response
         data = response.json()
         
-        # The API returns a 'results' key which is a list of movies
-        return data.get('results', [])
+        # Return the first result, which is usually the most relevant
+        if data.get('results'):
+            return data['results'][0]
+        else:
+            return None
 
     except requests.exceptions.RequestException as e:
-        print(f"Error during API request: {e}")
-        return []
+        print(f"Error during TMDb search for '{query}': {e}")
+        return None
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return []
+        print(f"An unexpected error occurred during TMDb search: {e}")
+        return None
 
-#--- Search API Test - delete after---
 
-search_term = "The Matrix"
-search_results = search_movies(search_term)
 
-if search_results:
-     print(f"Found {len(search_results)} results for '{search_term}':")
-     for movie in search_results:
-         # The 'id' and 'title' are the most important fields here
-         movie_id = movie.get('id')
-         title = movie.get('title')
-         release_date = movie.get('release_date', 'N/A')
-         print(f"  ID: {movie_id}, Title: '{title}', Release Date: {release_date}")
-else:
-     print(f"No results found for '{search_term}'.")
+#------- Function to get movie details by ID -------
 
+def get_movie_details(movie_id):
+    """
+    Gets detailed information for a single movie from TMDb by its ID.
+
+    Args:
+        movie_id (str): The ID of the movie to fetch details for.
+
+    Returns:
+        dict: A dictionary of movie details, or None if the request fails.
+    """
+    api_key = '619800e856d7bff5b95923808928a998'
+    base_url = f'https://api.themoviedb.org/3/movie/{movie_id}'
+
+    params = {
+        'api_key': api_key
+    }
+
+    try:
+        response = requests.get(base_url, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching movie details for ID {movie_id}: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred while fetching details for ID {movie_id}: {e}")
+        return None
 
 
 
 # To run the application, use `flask run` in your terminal
 # if __name__ == '__main__':
-    app.run(debug=True)
+app.run(debug=True)
