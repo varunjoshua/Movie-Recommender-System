@@ -7,7 +7,7 @@ import pandas as pd
 from recommender_models import get_recommendations_from_id, movies_df, find_movie_id
 
 # TMDb API key (This is a sample key and may not work)
-TMDB_API_KEY = '619800e856d7bff5b95923808928a998'
+TMDB_API_KEY = '609800e856d7bff5b95923808928a998'
 
 # ----- * Flask Application Setup * -----
 app = Flask(__name__)
