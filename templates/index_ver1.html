@@ -7,33 +7,6 @@
     <!-- Use Tailwind CSS for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .autocomplete-item {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            cursor: pointer;
-            transition: background-color 0.15s ease;
-        }
-        .autocomplete-item:hover {
-            background-color: #4a5568; /* hover:bg-gray-600 */
-        }
-        .autocomplete-item img {
-            width: 40px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-right: 12px;
-        }
-        /* Style for items that start with the search query */
-        .autocomplete-item.start-with {
-            background-color: #1f2937; /* bg-gray-800 */
-            border-left: 4px solid #4f46e5; /* border-indigo-600 */
-            padding-left: 4px;
-        }
         body::before {
           content: "";
           position: fixed;
@@ -56,13 +29,12 @@
 <h1 class="text-3xl font-bold text-center text-indigo-400 mt-[10vh] bg-black/60 px-6 py-3 rounded-lg shadow-lg">
     The Limited but Proper Movie Recommender
 </h1>
-
 <p class="text-sm text-gray-400 text-center max-w-xl">ver1.0</p>
 
 <p class="mt-3 text-sm text-white-400 text-center max-w-xl bg-black/60 px-6 py-3 rounded-lg shadow-lg">
     Search a tiny but charming collection of films, and get personalized recommendations based on your selection.
 </p>
-<br>
+<br> *****
     <div class="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-xl border border-gray-700">
         
 
@@ -93,23 +65,11 @@
             Get Recommendations
         </button>
 
-        <!-- Movie Details Section - New Section -->
-        <div id="movie-details-container" class="mt-8 p-4 bg-gray-700 rounded-lg shadow-inner hidden">
-            <div class="flex items-start">
-                <img id="movie-details-poster" src="" alt="Movie Poster" class="w-24 h-36 rounded-md mr-4 object-cover">
-                <div class="flex-grow">
-                    <h3 id="movie-details-title" class="text-2xl font-bold text-indigo-300"></h3>
-                    <p id="movie-details-release" class="text-sm text-gray-400"></p>
-                    <p id="movie-details-overview" class="text-sm mt-2 text-gray-300"></p>
-                </div>
-            </div>
-        </div>
-
         <!-- Loading Indicator and Results Section -->
         <div id="results-container" class="mt-8">
             <h2 id="results-heading" class="text-xl font-semibold mb-4 text-center hidden">Recommendations for <span class="text-indigo-400"></span>:</h2>
             <div id="loading-indicator" class="hidden text-center text-gray-400">Loading recommendations...</div>
-            <ul id="recommendations-list" class="space-y-4"></ul>
+            <ul id="recommendations-list" class="space-y-2"></ul>
         </div>
     </div>
     
@@ -130,12 +90,6 @@
         const selectedMovieIdInput = document.getElementById('selected-movie-id');
         const selectedMovieTitleInput = document.getElementById('selected-movie-title');
         const loadingIndicator = document.getElementById('loading-indicator');
-        // New elements for movie details
-        const movieDetailsContainer = document.getElementById('movie-details-container');
-        const movieDetailsPoster = document.getElementById('movie-details-poster');
-        const movieDetailsTitle = document.getElementById('movie-details-title');
-        const movieDetailsRelease = document.getElementById('movie-details-release');
-        const movieDetailsOverview = document.getElementById('movie-details-overview');
 
         // ====================================================================
         // Core Function: Handle Autocomplete Search
@@ -146,83 +100,29 @@
             clearTimeout(timeout);
             const query = movieSearchInput.value;
 
-            // Only make an API call if the query is not empty and has at least 3 characters
+            // Only make an API call if the query is not empty
             if (query.length > 2) {
                 timeout = setTimeout(async () => {
                     const response = await fetch(`/search_movies?query=${query}`);
                     const data = await response.json();
-                    
-                    // Sort the results: Exact matches, then 'starts with', then 'contains'
-                    data.movies.sort((a, b) => {
-                        const aTitle = a.Title.toLowerCase();
-                        const bTitle = b.Title.toLowerCase();
-                        const q = query.toLowerCase();
-
-                        const aExact = aTitle === q;
-                        const bExact = bTitle === q;
-                        const aStartsWith = aTitle.startsWith(q);
-                        const bStartsWith = bTitle.startsWith(q);
-
-                        if (aExact && !bExact) return -1;
-                        if (!aExact && bExact) return 1;
-                        if (aStartsWith && !bStartsWith) return -1;
-                        if (!aStartsWith && bStartsWith) return 1;
-                        
-                        // Fallback to alphabetical order for ties
-                        return aTitle.localeCompare(bTitle);
-                    });
-
-                    displayAutocompleteResults(data.movies, query);
+                    displayAutocompleteResults(data.movies);
                 }, 300); // 300ms debounce to avoid spamming the API
             } else {
                 // Clear the list if the search query is too short
                 autocompleteList.innerHTML = '';
                 autocompleteList.classList.add('hidden');
-                // Also hide the movie details and recommendations
-                movieDetailsContainer.classList.add('hidden');
-                recommendationsList.innerHTML = '';
-                resultsHeading.classList.add('hidden');
             }
         });
 
-        function displayAutocompleteResults(movies, query) {
+        function displayAutocompleteResults(movies) {
             autocompleteList.innerHTML = ''; // Clear previous results
             if (movies.length > 0) {
                 movies.forEach(movie => {
                     const li = document.createElement('li');
-                    
-                    li.className = 'autocomplete-item';
-
-                    // Add a class for styling if the movie title starts with the query
-                    if (movie.Title.toLowerCase().startsWith(query.toLowerCase())) {
-                        li.classList.add('start-with');
-                    }
-
-                    // Add the poster thumbnail if a path is available
-                    if (movie.PosterPath) {
-                        const img = document.createElement('img');
-                        img.src = `https://image.tmdb.org/t/p/w92${movie.PosterPath}`;
-                        img.alt = movie.Title;
-                        img.onerror = () => {
-                            // Fallback if the image fails to load
-                            img.src = "https://placehold.co/92x138/1f2937/d1d5db?text=No+Image";
-                        };
-                        li.appendChild(img);
-                    } else {
-                        // Add a fallback text or placeholder if no poster path
-                        const placeholder = document.createElement('div');
-                        placeholder.textContent = "No Image";
-                        placeholder.className = "w-[40px] h-[60px] flex items-center justify-center text-xs text-gray-400 bg-gray-700 rounded-md mr-3";
-                        li.appendChild(placeholder);
-                    }
-                    
-                    const titleSpan = document.createElement('span');
-                    titleSpan.textContent = movie.Title;
-                    li.appendChild(titleSpan);
-
+                    li.textContent = movie.Title;
                     li.setAttribute('data-movie-id', movie.MovieID);
                     li.setAttribute('data-movie-title', movie.Title);
-                    
+                    li.className = 'p-2 cursor-pointer hover:bg-gray-600 transition duration-150';
                     autocompleteList.appendChild(li);
 
                     // Add a click event listener to select a movie
@@ -232,47 +132,12 @@
                         selectedMovieIdInput.value = movie.MovieID;
                         selectedMovieTitleInput.value = movie.Title;
                         autocompleteList.classList.add('hidden');
-                        // Fetch and display movie details
-                        fetchAndDisplayDetails(movie.MovieID);
                     });
                 });
                 autocompleteList.classList.remove('hidden');
             } else {
                 autocompleteList.classList.add('hidden');
             }
-        }
-        
-        // ====================================================================
-        // New Function: Fetch and Display Movie Details
-        // ====================================================================
-        async function fetchAndDisplayDetails(movieId) {
-            movieDetailsContainer.classList.add('hidden'); // Hide old details
-            try {
-                const response = await fetch(`/get_movie_details?movie_id=${movieId}`);
-                const data = await response.json();
-
-                if (data.status === 'success' && data.details) {
-                    renderMovieDetails(data.details);
-                } else {
-                    console.error('Error fetching movie details:', data.message);
-                }
-            } catch (error) {
-                console.error('An error occurred while fetching movie details:', error);
-            }
-        }
-
-        function renderMovieDetails(details) {
-            // Set the poster image, with a fallback
-            movieDetailsPoster.src = details.poster_path ? `https://image.tmdb.org/t/p/w185${details.poster_path}` : "https://placehold.co/185x278/1f2937/d1d5db?text=No+Image";
-            movieDetailsPoster.alt = details.title;
-            
-            // Populate the text fields
-            movieDetailsTitle.textContent = details.title;
-            movieDetailsRelease.textContent = details.release_date ? `Released: ${details.release_date}` : 'Release date unavailable';
-            movieDetailsOverview.textContent = details.overview || 'Overview unavailable.';
-
-            // Show the container
-            movieDetailsContainer.classList.remove('hidden');
         }
 
         // ====================================================================
@@ -283,75 +148,33 @@
             const selectedMovieTitle = selectedMovieTitleInput.value;
             
             if (!selectedMovieId) {
+                // Use a simple alert for now, we can replace this with a better UI later
                 alert('Please select a movie from the search suggestions.');
                 return;
             }
 
+            // Show loading indicator and clear previous results
             loadingIndicator.classList.remove('hidden');
             recommendationsList.innerHTML = '';
             resultsHeading.classList.add('hidden');
 
             try {
+                // Call the recommendations API endpoint
                 const response = await fetch(`/recommendations?movie_id=${selectedMovieId}&n_recs=10`);
                 const data = await response.json();
 
                 if (data.status === 'success' && data.recommended_movies.length > 0) {
+                    // Update the heading to show which movie the recommendations are for
                     resultsHeading.querySelector('span').textContent = selectedMovieTitle;
                     resultsHeading.classList.remove('hidden');
 
+                    // Populate the recommendations list
                     data.recommended_movies.forEach(movie => {
                         const li = document.createElement('li');
-                        li.className = 'bg-gray-700 p-4 rounded-md shadow-inner text-gray-200 cursor-pointer transition transform hover:scale-105';
-                        li.setAttribute('data-movie-id', movie.MovieID);
-                        
-                        // Main title section to be clicked
-                        const titleHeader = document.createElement('div');
-                        titleHeader.className = 'flex justify-between items-center';
-                        titleHeader.innerHTML = `
-                            <span class="text-lg font-semibold text-indigo-300">${movie.Title}</span>
-                            <svg class="w-5 h-5 text-gray-400 transform transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        `;
-
-                        // Collapsible details section, initially hidden
-                        const detailsDiv = document.createElement('div');
-                        detailsDiv.className = 'mt-4 space-y-2 hidden';
-                        
-                        const posterUrl = movie.PosterPath ? `https://image.tmdb.org/t/p/w185${movie.PosterPath}` : "https://placehold.co/185x278/1f2937/d1d5db?text=No+Image";
-                        const overviewText = movie.Overview || 'No description available.';
-                        const rating = movie.VoteAverage ? movie.VoteAverage.toFixed(1) : 'N/A';
-                        
-                        detailsDiv.innerHTML = `
-                            <div class="flex items-start">
-                                <img src="${posterUrl}" alt="${movie.Title} Poster" class="w-24 h-36 rounded-md mr-4 object-cover">
-                                <div class="flex-grow">
-                                    <p class="text-sm text-gray-300">${overviewText}</p>
-                                    <p class="text-sm text-gray-400 mt-2">
-                                        <strong>TMDb Rating:</strong> 
-                                        <span class="text-yellow-400">${rating}</span> / 10
-                                    </p>
-                                </div>
-                            </div>
-                        `;
-                        
-                        li.appendChild(titleHeader);
-                        li.appendChild(detailsDiv);
+                        li.textContent = movie.Title;
+                        li.className = 'bg-gray-700 p-2 rounded-md shadow-inner text-gray-200';
                         recommendationsList.appendChild(li);
-
-                        // Add click event listener to toggle details
-                        titleHeader.addEventListener('click', () => {
-                            const isHidden = detailsDiv.classList.toggle('hidden');
-                            // Toggle the arrow icon
-                            const arrow = titleHeader.querySelector('svg');
-                            if (isHidden) {
-                                arrow.classList.remove('rotate-180');
-                            } else {
-                                arrow.classList.add('rotate-180');
-                            }
-                        });
                     });
-
                 } else {
                     recommendationsList.innerHTML = `<li class="text-gray-400 text-center">No recommendations found.</li>`;
                 }
@@ -379,7 +202,6 @@
             autocompleteList.classList.add('hidden');
             recommendationsList.innerHTML = '';
             resultsHeading.classList.add('hidden');
-            movieDetailsContainer.classList.add('hidden');
         };
 
     </script>
@@ -415,3 +237,18 @@
 
 </body>
 </html>
+
+<!-- Credits -->
+<!-- Concept & Product: Varun Joshua -->
+<!-- ML Recommendation Model : Varun Joshua -->
+<!-- Flask App Code: Google Gemini Flash 2.5 -->
+<!-- Tailwind CSS Styling: Google Gemini Flash -->
+<!-- HTML : Google Gemini Flash 2.5 -->
+<!-- Background Image: wallpaperbat.com -->
+<!-- Code Edits, Bug Fixes : GitHub Copilot-->
+
+
+<!--
+    This project is a simplified movie recommender system built with Flask and Tailwind CSS and a recommendation system built using item-item similarity.
+    It uses a small dataset of movies and provides basic search and recommendation functionality.
+    Feel free to explore and enhance it further!>
